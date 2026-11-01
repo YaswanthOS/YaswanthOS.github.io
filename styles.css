@@ -460,6 +460,11 @@ main p + p {
   margin-block: var(--space-4);
 }
 
+/* Linked to the full-size SVG so phone readers can zoom into the labels */
+.fingerprints-figure a {
+  display: block;
+}
+
 .fingerprints-figure img {
   width: 100%;
   height: auto;
