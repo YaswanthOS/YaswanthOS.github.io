@@ -1,0 +1,4 @@
+# Private notes, old CV and abstracts: never publish
+context/
+.claude/
+.DS_Store

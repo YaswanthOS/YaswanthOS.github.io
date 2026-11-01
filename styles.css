@@ -1,0 +1,674 @@
+/* ==========================================================================
+   Yaswanth O. S. — personal academic site
+   Hero: chalkboard tactics pitch (its own thing). Everything below is a
+   plain document — white, one sans face for prose, mono for labels/data.
+   ========================================================================== */
+
+:root {
+  /* Colour tokens */
+  --paper: #ffffff;
+  --ink: #1c1b17;
+  --pitch: #1f4d2e;
+  --chalk: #f7f4ea;
+  --crest-red: #a3282b;
+  --gold: #b08d3e;
+
+  /* Type tokens — display face is hero-only */
+  --font-display: "Bricolage Grotesque", "Archivo Black", sans-serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --body-size: 17px;
+  --body-line-height: 1.65;
+  --measure: 68ch;
+
+  /* Spacing scale */
+  --space-1: 0.5rem;
+  --space-2: 1rem;
+  --space-3: 1.5rem;
+  --space-4: 2.5rem;
+  --space-5: 4rem;
+
+  /* Focus ring */
+  --focus-ring: 2px solid var(--crest-red);
+  --focus-offset: 2px;
+}
+
+/* ==========================================================================
+   Reset + base
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body,
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+}
+
+body {
+  position: relative;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--body-size);
+  line-height: var(--body-line-height);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Visible keyboard focus everywhere */
+a:focus-visible,
+button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* ==========================================================================
+   Skip link
+   ========================================================================== */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 1000;
+  background: var(--chalk);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  padding: 0.6rem 1rem;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  left: var(--space-2);
+  top: var(--space-2);
+  outline: var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+/* ==========================================================================
+   Hero — "the chalkboard tactics pitch"
+   The one playful/decorative moment on the page; everything below is quiet.
+   ========================================================================== */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--pitch);
+  color: var(--chalk);
+  min-height: clamp(460px, 72vh, 700px);
+}
+
+.hero-pitch {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Pitch markings: halfway line, centre circle, penalty + six-yard boxes. */
+.pitch-lines {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 26 3 15 4 19 2; /* irregular = hand-chalked, not machine-drawn */
+  opacity: 0.85;
+}
+
+.pitch-spot {
+  fill: var(--chalk);
+  opacity: 0.85;
+}
+
+/* Degree-5 Bézier off-ball run (sampled to a polyline "d" — SVG paths have
+   no native command past cubic). Drawn on via stroke-dashoffset in hero.js;
+   the dasharray/dashoffset attributes in the markup keep it hidden before
+   JS runs, so there is no flash of the finished curve. */
+.trajectory {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
+}
+
+/* Chalk fill for both teams (only token with real contrast against
+   pitch-green); teams differentiated by rim colour/weight instead. */
+.defender-dot {
+  fill: var(--chalk);
+  stroke: var(--gold);
+  stroke-width: 4;
+}
+
+/* Attacking team — solid chalk dots, thin dark rim */
+.player-dot {
+  fill: var(--chalk);
+  stroke: var(--pitch);
+  stroke-width: 1.5;
+}
+
+/* The ball: chalk-filled circle with two seam strokes */
+.ball circle {
+  fill: var(--chalk);
+  stroke: var(--pitch);
+  stroke-width: 1;
+}
+
+.ball-seam {
+  fill: none;
+  stroke: var(--pitch);
+  stroke-width: 1;
+  stroke-linecap: round;
+}
+
+/* Dashed to read differently from the solid run line; revealed via the
+   #pass-reveal mask so the dashed look holds through the draw-on. */
+.pass-lane {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-dasharray: 9 7;
+  opacity: 0.85;
+}
+
+/* Gold arrow, D1's starting mark to A3, faded out as the run begins.
+   Defaults to hidden for no-JS / reduced motion. */
+.marking-arrow {
+  opacity: 0;
+}
+
+.marking-arrow-shaft,
+.marking-arrow-head {
+  fill: none;
+  stroke: var(--gold);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.marking-arrow-shaft {
+  stroke-width: 2.5;
+}
+
+.marking-arrow-head {
+  stroke-width: 3;
+}
+
+/* Settles at a quiet permanent glow; hero.js adds .pulse on arrival */
+.pass-highlight {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 2.5;
+  opacity: 0.6;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Set at setup time so the highlight stays hidden until A3 is free */
+.pass-highlight.pre-pulse {
+  opacity: 0;
+}
+
+.pass-highlight.pulse {
+  animation: pass-pulse 0.6s ease-out;
+}
+
+@keyframes pass-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.35);
+  }
+  100% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+}
+
+/* 6 faint rings on the curve's control points, secondary to the run itself */
+.control-dot {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 1.5;
+  opacity: 0;
+}
+
+/* Dashed segments connecting the 6 control points, Act 2's closing beat */
+.control-polygon {
+  fill: none;
+  stroke: var(--chalk);
+  stroke-width: 1;
+  stroke-dasharray: 3 4;
+  opacity: 0;
+}
+
+.end-mark {
+  stroke: var(--chalk);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+/* Reduced motion: force Act 1's completed static state; Act 2 (the zoomed
+   replay) stays off since the viewBox never zooms without JS running. */
+@media (prefers-reduced-motion: reduce) {
+  .trajectory {
+    stroke-dasharray: none !important;
+    stroke-dashoffset: 0 !important;
+  }
+
+  .end-mark {
+    opacity: 1 !important;
+  }
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+  height: 100%;
+  min-height: clamp(460px, 72vh, 700px);
+  display: grid;
+  grid-template-rows: 1fr auto;
+  gap: var(--space-3);
+  padding: clamp(1.25rem, 4vw, 2.5rem);
+}
+
+.hero-name-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-width: 0;
+}
+
+.hero-name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 4.5rem;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+  color: var(--chalk);
+  max-width: 100%;
+}
+
+.hero-subline {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--chalk);
+  max-width: 100%;
+}
+
+.hero-links {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.hero-links a {
+  color: var(--chalk);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(247, 244, 234, 0.4);
+  padding-bottom: 2px;
+  transition: border-color 0.2s ease, opacity 0.2s ease;
+}
+
+.hero-links a:hover {
+  border-color: var(--chalk);
+  opacity: 0.85;
+}
+
+.hero-links a:focus-visible {
+  outline: 2px solid var(--chalk);
+  outline-offset: 3px;
+}
+
+/* ==========================================================================
+   Main — About, Research, Selected work
+   ========================================================================== */
+
+main {
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding-inline: var(--space-3);
+}
+
+/* Screen-reader-only headings: the eyebrow on each section-divider is the
+   visible label; a real <h2>/<h3> still anchors the section semantically
+   and gives assistive tech a landmark, without visually duplicating text
+   that's already on the page. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+main section,
+footer {
+  margin-block-start: var(--space-5);
+}
+
+main section:first-child {
+  margin-block-start: var(--space-4);
+}
+
+/* Section dividers: a plain hairline rule under a small label */
+.section-divider {
+  padding-block-end: 0.5em;
+  border-bottom: 1px solid rgba(28, 27, 23, 0.2);
+  margin-block-end: var(--space-3);
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+main p {
+  max-width: var(--measure);
+}
+
+main p + p {
+  margin-block-start: var(--space-3);
+}
+
+.honours {
+  margin-block-start: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.medal-dot {
+  color: var(--gold);
+  margin-inline: 0.15em;
+}
+
+#research h2 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1.5rem;
+  line-height: 1.25;
+}
+
+.byline {
+  margin-block-start: var(--space-1);
+  margin-block-end: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  opacity: 0.75;
+}
+
+.byline + p {
+  margin-block-start: 0;
+}
+
+.fingerprints-figure {
+  margin-block: var(--space-4);
+}
+
+.fingerprints-figure img {
+  width: 100%;
+  height: auto;
+  border-radius: 2px;
+}
+
+.fingerprints-figure figcaption {
+  margin-block-start: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  opacity: 0.75;
+}
+
+.interests-heading {
+  margin-block-start: var(--space-4);
+  margin-block-end: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Fixtures-list table: league-table typography for "selected work" — Plex
+   Mono, thin rules between rows, right-aligned dates. */
+.fixtures-list {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+}
+
+.fixtures-list td {
+  padding-block: 0.85em;
+  border-bottom: 1px solid rgba(28, 27, 23, 0.2);
+  vertical-align: top;
+}
+
+.fixtures-list tr:first-child td {
+  border-top: 1px solid rgba(28, 27, 23, 0.2);
+}
+
+.fixtures-date {
+  padding-inline-start: 1.5em;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  opacity: 0.75;
+}
+
+/* Publications: a plain reference entry; the long DOI may wrap on phones */
+.publication {
+  overflow-wrap: break-word;
+}
+
+.fixtures-list a,
+.publication a {
+  text-decoration: underline;
+  text-decoration-color: rgba(28, 27, 23, 0.35);
+  text-underline-offset: 3px;
+}
+
+.fixtures-list a:hover,
+.publication a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* ==========================================================================
+   Footer — CV / Contact
+   ========================================================================== */
+
+/* Same column as main, so the footer lines up with the sections above */
+footer {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding-inline: var(--space-3);
+  padding-block-end: var(--space-5);
+}
+
+.cv-button {
+  display: inline-block;
+  padding: 0.6em 1.2em;
+  border: 1px solid var(--ink);
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+.cv-button:hover {
+  background-color: rgba(28, 27, 23, 0.05);
+}
+
+.cv-button:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 3px;
+}
+
+.contact-line {
+  margin-block-start: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+}
+
+.contact-line a {
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: rgba(28, 27, 23, 0.35);
+  text-underline-offset: 3px;
+}
+
+.contact-line a:hover {
+  text-decoration-color: currentColor;
+}
+
+.contact-line span {
+  margin-inline: 0.5em;
+  opacity: 0.5;
+}
+
+/* ==========================================================================
+   Single responsive breakpoint (~640px). The hero's preserveAspectRatio
+   swap isn't handled here — see the inline script after the SVG.
+   ========================================================================== */
+
+@media (max-width: 640px) {
+  .hero {
+    min-height: clamp(420px, 82vh, 620px);
+  }
+
+  .hero-content {
+    min-height: clamp(420px, 82vh, 620px);
+  }
+
+  .hero-name {
+    font-size: clamp(1.6rem, 8.5vw, 2.4rem);
+    letter-spacing: 0;
+  }
+
+  .hero-subline {
+    font-size: clamp(0.55rem, 2.6vw, 0.7rem);
+    letter-spacing: 0.1em;
+  }
+
+  .hero-links {
+    gap: var(--space-3);
+    font-size: 0.78rem;
+  }
+
+  /* At 375px the ~0.31 viewBox-to-px scale thins the gold rim too much
+     to read as a distinct team; bump it back up */
+  .defender-dot {
+    stroke-width: 5;
+  }
+
+  .marking-arrow-shaft {
+    stroke-width: 3.25;
+  }
+
+  .marking-arrow-head {
+    stroke-width: 4;
+  }
+
+  .fixtures-list {
+    font-size: 0.82rem;
+  }
+
+  .fixtures-date {
+    padding-inline-start: 0.75em;
+  }
+}
+
+/* ==========================================================================
+   Print — professors sometimes print pages. Hero animation and pitch
+   graphic serve no purpose on paper and would waste ink as a solid green
+   block, so they're dropped entirely; everything else prints black-on-white.
+   ========================================================================== */
+
+@media print {
+  .skip-link {
+    display: none;
+  }
+
+  .hero {
+    background: none;
+    color: var(--ink);
+    min-height: auto;
+    padding-block: var(--space-3);
+  }
+
+  .hero-pitch {
+    display: none;
+  }
+
+  .hero-name,
+  .hero-subline {
+    color: var(--ink);
+  }
+
+  .hero-links a {
+    color: var(--ink);
+  }
+
+  a {
+    color: var(--ink);
+  }
+
+  .cv-button {
+    border: 1px solid var(--ink);
+  }
+}
