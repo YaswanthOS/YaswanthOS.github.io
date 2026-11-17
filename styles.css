@@ -1,37 +1,43 @@
 /* ==========================================================================
-   Yaswanth O. S. — personal academic site
-   Hero: chalkboard tactics pitch (its own thing). Everything below is a
-   plain document — white, one sans face for prose, mono for labels/data.
+   Yaswanth O. S. — personal academic site (redesign sample)
+
+   One monospace face for everything. On wide screens a fixed side column
+   holds the name and a small painted chalkboard; a hand-drawn sketch sits
+   in the far corner; the text scrolls between them.
+
+   Layouts, narrow to wide:
+     under 540px   phone: name, section list, board, text; sketch ends the page
+     540px and up  header: name on the left, board in the top-right corner
+     800px and up  the sketch is fixed in the bottom-right corner
+     1000px and up the side column is fixed too
    ========================================================================== */
 
 :root {
-  /* Colour tokens */
-  --paper: #ffffff;
-  --ink: #1c1b17;
-  --pitch: #1f4d2e;
+  /* Colour tokens: the site's palette, plus a few working tones.
+     Contrast ratios are against --paper. */
+  --paper: #fbf9f3;      /* chalk, lightened for the page */
+  --ink: #1c1b17;        /* 16.4:1 */
+  --ink-soft: #5e5d55;   /* 6.3:1  captions, bylines, side navigation */
+  --pitch: #1f4d2e;      /* 9.2:1  */
   --chalk: #f7f4ea;
-  --crest-red: #a3282b;
-  --gold: #b08d3e;
+  --crest-red: #a3282b;  /* 6.9:1  focus ring, control points */
+  /* The palette's gold, #b08d3e, is only 3.0:1 on the page, so it is used
+     as two working tones: brighter for paint, darker for text. */
+  --sun: #dda32a;        /* 2.1:1  decoration only: the ball, underlines */
+  --ochre: #8a6100;      /* 5.3:1  link text */
 
-  /* Type tokens — display face is hero-only */
-  --font-display: "Bricolage Grotesque", "Archivo Black", sans-serif;
-  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+  /* Type tokens */
+  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  --font-display: "Bricolage Grotesque", "Archivo Black", "Arial Black", system-ui, sans-serif;
 
-  --body-size: 17px;
-  --body-line-height: 1.65;
-  --measure: 68ch;
+  /* Layout tokens */
+  --measure: 62ch;
+  --gutter: 16px;
 
-  /* Spacing scale */
-  --space-1: 0.5rem;
-  --space-2: 1rem;
-  --space-3: 1.5rem;
-  --space-4: 2.5rem;
-  --space-5: 4rem;
-
-  /* Focus ring */
-  --focus-ring: 2px solid var(--crest-red);
-  --focus-offset: 2px;
+  /* Chalk grain for the name: a 192x144 one-bit PNG, solid with sparse
+     holes, used as a mask. (A mask stays sharp on every screen, where an
+     SVG filter on text may not.) */
+  --chalk-grain: url("data:image/png;base64,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");
 }
 
 /* ==========================================================================
@@ -46,21 +52,33 @@
 
 html {
   -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
 }
 
-body,
+body {
+  margin: 0;
+  background-color: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: clamp(0.9375rem, 0.66rem + 0.42vw, 1.0625rem);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 h1,
 h2,
 h3,
 p,
+ul,
 figure {
   margin: 0;
 }
 
-ul,
-ol {
-  margin: 0;
+ul {
   padding: 0;
+  list-style: none;
 }
 
 img,
@@ -69,77 +87,202 @@ svg {
   max-width: 100%;
 }
 
-a {
-  color: inherit;
+.svg-defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
 }
 
-body {
-  position: relative;
-  background-color: var(--paper);
-  color: var(--ink);
-  font-family: var(--font-body);
-  font-size: var(--body-size);
-  line-height: var(--body-line-height);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-/* Visible keyboard focus everywhere */
-a:focus-visible,
-button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
+::selection {
+  background-color: rgba(221, 163, 42, 0.4);
 }
 
 /* ==========================================================================
-   Skip link
+   Links
    ========================================================================== */
+
+a {
+  color: var(--ochre);
+  text-decoration: underline;
+  text-decoration-color: var(--sun);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 0.22em;
+  border-radius: 2px;
+}
+
+/* Hover: a swipe of highlighter under ink text */
+a:hover {
+  color: var(--ink);
+  background-color: rgba(221, 163, 42, 0.3);
+  text-decoration-color: transparent;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--crest-red);
+  outline-offset: 3px;
+}
+
+/* <main> takes focus from the skip link; it needs no ring of its own */
+main:focus {
+  outline: none;
+}
 
 .skip-link {
   position: absolute;
   left: -9999px;
   top: 0;
   z-index: 1000;
-  background: var(--chalk);
-  color: var(--ink);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
+  background: var(--pitch);
+  color: var(--chalk);
+  font-size: 0.875rem;
   padding: 0.6rem 1rem;
   text-decoration: none;
 }
 
 .skip-link:focus {
-  left: var(--space-2);
-  top: var(--space-2);
-  outline: var(--focus-ring);
-  outline-offset: var(--focus-offset);
+  left: 1rem;
+  top: 1rem;
+  outline: 2px solid var(--crest-red);
+  outline-offset: 2px;
 }
 
 /* ==========================================================================
-   Hero — "the chalkboard tactics pitch"
-   The one playful/decorative moment on the page; everything below is quiet.
+   Side column: name, section list, chalkboard.
+   Base styles are the phone layout; wider layouts follow below.
    ========================================================================== */
 
-.hero {
+.side {
   position: relative;
-  overflow: hidden;
-  background-color: var(--pitch);
-  color: var(--chalk);
-  min-height: clamp(460px, 72vh, 700px);
+  padding: 28px var(--gutter) 6px; /* 6px: room for focus rings */
+  overflow: hidden; /* the board bleeds off an edge */
 }
 
-.hero-pitch {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
+.name {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(2rem, 9.4vw, 3.25rem);
+  line-height: 0.94;
+  letter-spacing: -0.012em;
+  text-transform: uppercase;
+  color: var(--pitch);
+  -webkit-mask-image: var(--chalk-grain);
+  mask-image: var(--chalk-grain);
+  -webkit-mask-size: 192px 144px;
+  mask-size: 192px 144px;
 }
 
-/* Pitch markings: halfway line, centre circle, penalty + six-yard boxes. */
+/* Hand-drawn double underline */
+.scribble {
+  width: min(100%, 13.5rem);
+  height: auto;
+  margin-top: 6px;
+  overflow: visible;
+}
+
+.scribble path {
+  fill: none;
+  stroke: var(--sun);
+  stroke-width: 3.2;
+  stroke-linecap: round;
+}
+
+.scribble .scribble-return {
+  stroke-width: 2;
+  opacity: 0.8;
+}
+
+/* The name in Malayalam, handwritten, under the English name */
+.name-native {
+  margin-top: 2px;
+  font-family: "Chilanka", var(--font-mono);
+  font-size: clamp(1.5rem, 6.4vw, 1.9rem);
+  line-height: 1.25;
+  color: var(--pitch);
+}
+
+.subline {
+  margin-top: 8px;
+  font-size: max(0.8125rem, 0.8em);
+  line-height: 1.55;
+  letter-spacing: 0.01em;
+  text-transform: lowercase;
+  text-wrap: balance;
+  color: var(--ink-soft);
+}
+
+/* Section list */
+.toc {
+  margin-top: 10px;
+  font-size: 0.875rem;
+}
+
+.toc ul {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 1.75ch;
+}
+
+.toc a {
+  display: inline-block;
+  padding-block: 0.3em; /* a comfortable target for thumbs */
+  color: var(--ink-soft);
+  text-decoration: none;
+  text-transform: lowercase;
+}
+
+.toc a[href^="#"]::after {
+  content: "/";
+  content: "/" / "";
+}
+
+.toc a:hover {
+  color: var(--ink);
+}
+
+/* The section being read: pitch green, with a small gold ball beside it */
+.toc a[aria-current] {
+  color: var(--pitch);
+  font-weight: 600;
+}
+
+.toc .toc-cv a {
+  color: var(--ochre);
+  text-decoration: underline;
+  text-decoration-color: var(--sun);
+  text-transform: none;
+}
+
+.toc .toc-cv a:hover {
+  color: var(--ink);
+  text-decoration-color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   The chalkboard: a painted swatch of pitch with the tactical sequence
+   from the old hero. Phone: full width, bleeding off the right edge.
+   -------------------------------------------------------------------------- */
+
+.board {
+  margin: 16px calc(var(--gutter) * -1) 0 -6px;
+}
+
+.board-svg {
+  width: min(calc(100% + 16px), 28rem);
+  max-width: none;
+  height: auto;
+  aspect-ratio: 632 / 472;
+}
+
+.swatch {
+  fill: var(--pitch);
+}
+
+/* Pitch markings: halfway line, centre circle, penalty area, arc, six-yard box */
 .pitch-lines {
   fill: none;
   stroke: var(--chalk);
-  stroke-width: 3;
+  stroke-width: 3.5;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-dasharray: 26 3 15 4 19 2; /* irregular = hand-chalked, not machine-drawn */
@@ -151,45 +294,44 @@ button:focus-visible {
   opacity: 0.85;
 }
 
-/* Degree-5 Bézier off-ball run (sampled to a polyline "d" — SVG paths have
-   no native command past cubic). Drawn on via stroke-dashoffset in hero.js;
-   the dasharray/dashoffset attributes in the markup keep it hidden before
-   JS runs, so there is no flash of the finished curve. */
+/* Degree-5 Bézier off-ball run (sampled to a polyline "d": SVG paths have
+   no native command past cubic). Drawn on via stroke-dashoffset in site.js. */
 .trajectory {
   fill: none;
   stroke: var(--chalk);
-  stroke-width: 3.5;
+  stroke-width: 4.5;
   stroke-linecap: round;
   stroke-linejoin: round;
-  opacity: 0.9;
+  opacity: 0.92;
 }
 
-/* Chalk fill for both teams (only token with real contrast against
-   pitch-green); teams differentiated by rim colour/weight instead. */
+/* Chalk fill for both teams; teams differ by rim colour and weight */
 .defender-dot {
   fill: var(--chalk);
-  stroke: var(--gold);
-  stroke-width: 4;
+  stroke: var(--sun);
+  stroke-width: 4.5;
 }
 
-/* Attacking team — solid chalk dots, thin dark rim */
 .player-dot {
   fill: var(--chalk);
   stroke: var(--pitch);
   stroke-width: 1.5;
 }
 
-/* The ball: chalk-filled circle with two seam strokes */
+.quiet {
+  opacity: 0.6;
+}
+
 .ball circle {
   fill: var(--chalk);
   stroke: var(--pitch);
-  stroke-width: 1;
+  stroke-width: 1.2;
 }
 
 .ball-seam {
   fill: none;
   stroke: var(--pitch);
-  stroke-width: 1;
+  stroke-width: 1.1;
   stroke-linecap: round;
 }
 
@@ -198,14 +340,13 @@ button:focus-visible {
 .pass-lane {
   fill: none;
   stroke: var(--chalk);
-  stroke-width: 3;
+  stroke-width: 3.5;
   stroke-linecap: round;
-  stroke-dasharray: 9 7;
+  stroke-dasharray: 10 8;
   opacity: 0.85;
 }
 
-/* Gold arrow, D1's starting mark to A3, faded out as the run begins.
-   Defaults to hidden for no-JS / reduced motion. */
+/* Gold arrow, D1's starting mark to A3. Hidden in the finished drawing. */
 .marking-arrow {
   opacity: 0;
 }
@@ -213,467 +354,772 @@ button:focus-visible {
 .marking-arrow-shaft,
 .marking-arrow-head {
   fill: none;
-  stroke: var(--gold);
+  stroke: var(--sun);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .marking-arrow-shaft {
-  stroke-width: 2.5;
+  stroke-width: 3.25;
 }
 
 .marking-arrow-head {
-  stroke-width: 3;
+  stroke-width: 4;
 }
 
-/* Settles at a quiet permanent glow; hero.js adds .pulse on arrival */
+/* Settles at a quiet permanent glow; site.js adds .pulse on arrival */
 .pass-highlight {
   fill: none;
   stroke: var(--chalk);
-  stroke-width: 2.5;
+  stroke-width: 3;
   opacity: 0.6;
   transform-box: fill-box;
   transform-origin: center;
 }
 
-/* Set at setup time so the highlight stays hidden until A3 is free */
-.pass-highlight.pre-pulse {
-  opacity: 0;
-}
-
-.pass-highlight.pulse {
-  animation: pass-pulse 0.6s ease-out;
-}
-
-@keyframes pass-pulse {
-  0% {
-    opacity: 0;
-    transform: scale(0.6);
-  }
-  45% {
-    opacity: 1;
-    transform: scale(1.35);
-  }
-  100% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-}
-
-/* 6 faint rings on the curve's control points, secondary to the run itself */
-.control-dot {
-  fill: none;
-  stroke: var(--chalk);
-  stroke-width: 1.5;
-  opacity: 0;
-}
-
-/* Dashed segments connecting the 6 control points, Act 2's closing beat */
-.control-polygon {
-  fill: none;
-  stroke: var(--chalk);
-  stroke-width: 1;
-  stroke-dasharray: 3 4;
-  opacity: 0;
-}
 
 .end-mark {
   stroke: var(--chalk);
-  stroke-width: 4;
+  stroke-width: 4.5;
   stroke-linecap: round;
 }
 
-/* Reduced motion: force Act 1's completed static state; Act 2 (the zoomed
-   replay) stays off since the viewBox never zooms without JS running. */
-@media (prefers-reduced-motion: reduce) {
-  .trajectory {
-    stroke-dasharray: none !important;
-    stroke-dashoffset: 0 !important;
-  }
-
-  .end-mark {
-    opacity: 1 !important;
-  }
-}
-
-.hero-content {
+/* Pause / play for both drawings. A chalk-on-pitch pill in the board's
+   corner; it has its own background, so it reads on paper as well. It is
+   only shown once site.js is animating (not with reduced motion or no JS). */
+.board {
   position: relative;
+}
+
+.motion-toggle {
+  display: none;
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
   z-index: 2;
-  height: 100%;
-  min-height: clamp(460px, 72vh, 700px);
-  display: grid;
-  grid-template-rows: 1fr auto;
-  gap: var(--space-3);
-  padding: clamp(1.25rem, 4vw, 2.5rem);
-}
-
-.hero-name-block {
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: var(--space-2);
-  width: 100%;
-  min-width: 0;
-}
-
-.hero-name {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 4.5rem;
-  line-height: 1;
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
+  gap: 0.45em;
+  padding: 5px 11px 5px 9px;
+  border: 1px solid rgba(247, 244, 234, 0.45);
+  border-radius: 999px;
+  background: var(--pitch);
   color: var(--chalk);
-  max-width: 100%;
+  font: 400 0.75rem/1 var(--font-mono);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  visibility: visible; /* stays usable if the board itself is hidden */
 }
 
-.hero-subline {
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--chalk);
-  max-width: 100%;
+.anim-started .motion-toggle {
+  display: inline-flex;
 }
 
-.hero-links {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-4);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-variant-numeric: tabular-nums;
-  letter-spacing: 0.04em;
+.motion-toggle:hover {
+  background: #173b23;
 }
 
-.hero-links a {
-  color: var(--chalk);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(247, 244, 234, 0.4);
-  padding-bottom: 2px;
-  transition: border-color 0.2s ease, opacity 0.2s ease;
+.motion-toggle:focus-visible {
+  outline: 3px solid var(--crest-red);
+  outline-offset: 2px;
 }
 
-.hero-links a:hover {
-  border-color: var(--chalk);
-  opacity: 0.85;
-}
-
-.hero-links a:focus-visible {
-  outline: 2px solid var(--chalk);
-  outline-offset: 3px;
+.motion-icon {
+  font-size: 0.85em;
+  letter-spacing: -0.08em;
 }
 
 /* ==========================================================================
-   Main — About, Research, Selected work
+   Main column
    ========================================================================== */
 
+main,
+.contact {
+  position: relative;
+  z-index: 1;
+  max-width: calc(var(--measure) + 2 * var(--gutter));
+  padding-inline: var(--gutter);
+}
+
 main {
-  max-width: var(--measure);
-  margin: 0 auto;
-  padding-inline: var(--space-3);
+  padding-top: 40px;
 }
 
-/* Screen-reader-only headings: the eyebrow on each section-divider is the
-   visible label; a real <h2>/<h3> still anchors the section semantically
-   and gives assistive tech a landmark, without visually duplicating text
-   that's already on the page. */
-.visually-hidden {
+section + section,
+.contact {
+  margin-top: 3.75rem;
+}
+
+.contact {
+  padding-bottom: 1rem;
+}
+
+section[id] {
+  scroll-margin-top: 28px;
+}
+
+/* Section headings: lowercase, light, with a trailing slash */
+h2 {
+  margin-bottom: 0.5em;
+  font-size: clamp(1.75rem, 1.45rem + 0.9vw, 2rem);
+  font-weight: 300;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-transform: lowercase;
+}
+
+h2::after {
+  content: "/";
+  content: "/" / "";
+  color: var(--ochre);
+}
+
+h3 {
+  font-size: 1em;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--pitch);
+}
+
+p + p {
+  margin-top: 1.1em;
+}
+
+strong {
+  font-weight: 600;
+}
+
+/* Lists use a plain "-" as the bullet */
+.dash-list li {
+  position: relative;
+  padding-left: 2ch;
+}
+
+.dash-list li::before {
+  content: "-";
+  content: "-" / "";
   position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+  left: 0;
+  color: var(--ochre);
 }
 
-main section,
-footer {
-  margin-block-start: var(--space-5);
+.dash-list li + li {
+  margin-top: 0.3em;
 }
 
-main section:first-child {
-  margin-block-start: var(--space-4);
+/* The portrait, beside the greeting. The drawing is cropped at the waist,
+   so its lower edge fades into the page. */
+#about {
+  display: flow-root; /* holds the floated portrait */
 }
 
-/* Section dividers: a plain hairline rule under a small label */
-.section-divider {
-  padding-block-end: 0.5em;
-  border-bottom: 1px solid rgba(28, 27, 23, 0.2);
-  margin-block-end: var(--space-3);
+.portrait {
+  display: block;
+  width: min(68%, 250px);
+  height: auto;
+  margin: 0 0 1.25rem;
+  -webkit-mask-image: linear-gradient(to bottom, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, #000 78%, transparent);
 }
 
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  opacity: 0.6;
-}
-
-main p {
-  max-width: var(--measure);
-}
-
-main p + p {
-  margin-block-start: var(--space-3);
+@media (min-width: 540px) {
+  .portrait {
+    float: right;
+    width: clamp(170px, 36%, 260px);
+    margin: 0 0 0.75rem 1.75rem;
+  }
 }
 
 .honours {
-  margin-block-start: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  letter-spacing: 0.02em;
+  margin-top: 1.4em;
 }
 
-.medal-dot {
-  color: var(--gold);
-  margin-inline: 0.15em;
-}
-
-#research h2 {
-  font-family: var(--font-body);
-  font-weight: 700;
-  font-size: 1.5rem;
-  line-height: 1.25;
+/* Research */
+.project-title {
+  font-size: 1.1em;
 }
 
 .byline {
-  margin-block-start: var(--space-1);
-  margin-block-end: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: 0.8rem;
-  opacity: 0.75;
-}
-
-.byline + p {
-  margin-block-start: 0;
+  margin-top: 0.35em;
+  margin-bottom: 1.25em;
+  font-size: 0.875em;
+  line-height: 1.6;
+  color: var(--ink-soft);
 }
 
 .fingerprints-figure {
-  margin-block: var(--space-4);
+  margin-block: 2.1em 2.3em;
 }
 
-/* Linked to the full-size SVG so phone readers can zoom into the labels */
-.fingerprints-figure a {
+/* Linked to the full-size SVG so phone readers can zoom into the labels.
+   The figure's own background is white: the link carries the paper colour
+   and the image multiplies onto it, so the paper shows through. */
+.fingerprints-figure a,
+.fingerprints-figure a:hover {
   display: block;
+  background-color: var(--paper);
 }
 
 .fingerprints-figure img {
   width: 100%;
   height: auto;
-  border-radius: 2px;
+  mix-blend-mode: multiply;
 }
 
 .fingerprints-figure figcaption {
-  margin-block-start: var(--space-1);
-  font-family: var(--font-mono);
-  font-size: 0.78rem;
-  opacity: 0.75;
+  margin-top: 0.75em;
+  font-size: 0.84em;
+  line-height: 1.6;
+  color: var(--ink-soft);
 }
 
-.interests-heading {
-  margin-block-start: var(--space-4);
-  margin-block-end: var(--space-2);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+.sub-heading {
+  margin-top: 2.1em;
+  margin-bottom: 0.35em;
 }
 
-/* Fixtures-list table: league-table typography for "selected work" — Plex
-   Mono, thin rules between rows, right-aligned dates. */
-.fixtures-list {
-  width: 100%;
-  border-collapse: collapse;
-  font-family: var(--font-mono);
-  font-size: 0.9rem;
+/* Publications: the long DOI may wrap on phones */
+.publications li {
+  overflow-wrap: anywhere;
 }
 
-.fixtures-list td {
-  padding-block: 0.85em;
-  border-bottom: 1px solid rgba(28, 27, 23, 0.2);
-  vertical-align: top;
+/* Selected work: year first, like a fixture list */
+.work-list li {
+  display: grid;
+  grid-template-columns: 4ch minmax(0, 1fr);
+  column-gap: 2ch;
 }
 
-.fixtures-list tr:first-child td {
-  border-top: 1px solid rgba(28, 27, 23, 0.2);
+.work-list li + li {
+  margin-top: 0.85em;
 }
 
-.fixtures-date {
-  padding-inline-start: 1.5em;
-  text-align: right;
+.work-list .year {
+  color: var(--pitch);
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  opacity: 0.75;
-}
-
-/* Publications: a plain reference entry; the long DOI may wrap on phones */
-.publication {
-  overflow-wrap: break-word;
-}
-
-.fixtures-list a,
-.publication a {
-  text-decoration: underline;
-  text-decoration-color: rgba(28, 27, 23, 0.35);
-  text-underline-offset: 3px;
-}
-
-.fixtures-list a:hover,
-.publication a:hover {
-  text-decoration-color: currentColor;
 }
 
 /* ==========================================================================
-   Footer — CV / Contact
+   Corner sketch. Stacked layouts: closes the page, flush right.
    ========================================================================== */
 
-/* Same column as main, so the footer lines up with the sections above */
-footer {
-  max-width: var(--measure);
-  margin-inline: auto;
-  padding-inline: var(--space-3);
-  padding-block-end: var(--space-5);
+.corner-art {
+  width: min(78%, 20rem);
+  margin: 2.5rem 0 0 auto;
 }
 
-.cv-button {
-  display: inline-block;
-  padding: 0.6em 1.2em;
-  border: 1px solid var(--ink);
-  border-radius: 2px;
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
-  text-decoration: none;
-  transition: background-color 0.15s ease;
+.art-svg {
+  width: 100%;
+  height: auto;
 }
 
-.cv-button:hover {
-  background-color: rgba(28, 27, 23, 0.05);
+.art-space-paint {
+  fill: var(--sun);
 }
 
-.cv-button:focus-visible {
-  outline: var(--focus-ring);
-  outline-offset: 3px;
+/* Ink outline, deliberately out of register with the paint */
+.art-space-outline {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 1.4;
+  stroke-opacity: 0.8;
 }
 
-.contact-line {
-  margin-block-start: var(--space-3);
-  font-family: var(--font-mono);
-  font-size: 0.85rem;
+.art-lines {
+  fill: none;
+  stroke: var(--pitch);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
-.contact-line a {
-  white-space: nowrap;
-  text-decoration: underline;
-  text-decoration-color: rgba(28, 27, 23, 0.35);
-  text-underline-offset: 3px;
+.art-lines-second {
+  stroke-width: 1.3;
+  opacity: 0.55;
 }
 
-.contact-line a:hover {
-  text-decoration-color: currentColor;
+.art-net {
+  fill: none;
+  stroke: var(--pitch);
+  stroke-width: 1;
+  opacity: 0.7;
 }
 
-.contact-line span {
-  margin-inline: 0.5em;
+/* Defending team: paper with a red ring. Attacking team: solid green. */
+.art-def {
+  fill: var(--paper);
+  stroke: var(--crest-red);
+  stroke-width: 2.8;
+}
+
+.art-att {
+  fill: var(--pitch);
+  stroke: var(--paper);
+  stroke-width: 1.5;
+}
+
+/* The lines of the defending shape */
+.art-shape {
+  fill: none;
+  stroke: var(--crest-red);
+  stroke-width: 1.4;
+  stroke-opacity: 0.7;
+  stroke-dasharray: 3 6;
+  stroke-linecap: round;
+}
+
+/* Dashed rings where the movers started */
+.art-ghost {
+  fill: none;
+  stroke-width: 1.6;
+  stroke-dasharray: 3 3.5;
+}
+
+.art-ghost-att {
+  stroke: var(--pitch);
+}
+
+.art-ghost-def {
+  stroke: var(--crest-red);
+}
+
+.art-run {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.art-decoy {
+  stroke-width: 3.4;
+}
+
+.art-arrive {
+  stroke-width: 2.4;
+}
+
+.art-drag {
+  fill: none;
+  stroke: var(--crest-red);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+
+/* Dashed, like the pass on the board; revealed through #art-pass-reveal */
+.art-pass {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.6;
+  stroke-dasharray: 9 7;
+  stroke-linecap: round;
+}
+
+.art-ball circle {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.6;
+}
+
+/* Settles at a quiet ring round the ball; site.js pulses it on arrival */
+.art-pulse {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
   opacity: 0.5;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.art-label {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  letter-spacing: 0.02em;
+  fill: var(--ink);
+}
+
+/* Before site.js takes over, keep the moving pieces out of sight so the
+   finished drawing never flashes ahead of the animation. */
+.anim:not(.anim-started) .live {
+  visibility: hidden;
 }
 
 /* ==========================================================================
-   Single responsive breakpoint (~640px). The hero's preserveAspectRatio
-   swap isn't handled here — see the inline script after the SVG.
+   Header layout (540px and up): name on the left, board in the top-right
+   corner
    ========================================================================== */
 
-@media (max-width: 640px) {
-  .hero {
-    min-height: clamp(420px, 82vh, 620px);
+@media (min-width: 540px) {
+  :root {
+    --gutter: clamp(28px, 6vw, 64px);
   }
 
-  .hero-content {
-    min-height: clamp(420px, 82vh, 620px);
+  .side {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 47%);
+    grid-template-rows: auto 1fr;
+    column-gap: 28px;
+    padding: 0 0 6px var(--gutter);
   }
 
-  .hero-name {
-    font-size: clamp(1.6rem, 8.5vw, 2.4rem);
-    letter-spacing: 0;
+  .name-block {
+    grid-column: 1;
+    grid-row: 1;
+    padding-top: 44px;
   }
 
-  .hero-subline {
-    font-size: clamp(0.55rem, 2.6vw, 0.7rem);
-    letter-spacing: 0.1em;
+  .name {
+    font-size: clamp(2.25rem, 7vw, 3.5rem);
   }
 
-  .hero-links {
-    gap: var(--space-3);
-    font-size: 0.78rem;
+  .name span {
+    display: block;
   }
 
-  /* At 375px the ~0.31 viewBox-to-px scale thins the gold rim too much
-     to read as a distinct team; bump it back up */
-  .defender-dot {
-    stroke-width: 5;
+  /* the section list runs full width under the name and the board... */
+  .toc {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    padding-right: var(--gutter);
   }
 
-  .marking-arrow-shaft {
-    stroke-width: 3.25;
+  .board {
+    grid-column: 2;
+    grid-row: 1;
+    margin: -12px 0 0;
   }
 
-  .marking-arrow-head {
-    stroke-width: 4;
+  .board-svg {
+    width: calc(100% + 16px);
   }
 
-  .fixtures-list {
-    font-size: 0.82rem;
+  main {
+    padding-top: 48px;
+  }
+}
+
+/* ...and tucks in beside the board once the left column is wide enough */
+@media (min-width: 700px) {
+  .toc {
+    grid-column: 1;
+    padding-right: 0;
   }
 
-  .fixtures-date {
-    padding-inline-start: 0.75em;
+  .board {
+    grid-row: 1 / span 2;
   }
 }
 
 /* ==========================================================================
-   Print — professors sometimes print pages. Hero animation and pitch
-   graphic serve no purpose on paper and would waste ink as a solid green
-   block, so they're dropped entirely; everything else prints black-on-white.
+   800px and up: the sketch is fixed in the bottom-right corner, in the
+   space to the right of the text column. It scales to fit that space and
+   never reaches under the text. (Under the header layout it also needs a
+   reasonably tall window, to stay clear of the board at the top right.)
+   ========================================================================== */
+
+@media (min-width: 800px) and (min-height: 600px), (min-width: 1000px) {
+  :root {
+    /* x position where the text column ends */
+    --text-end: calc(var(--gutter) + var(--measure));
+    /* modest under the header layout, and always below the board while
+       the page is at the top */
+    --art-height: min(74vh, 380px, calc(100vh - 34.5vw - 30px));
+  }
+
+  .corner-art {
+    position: fixed;
+    left: calc(var(--text-end) + 24px);
+    right: 0;
+    bottom: 0;
+    width: auto;
+    height: var(--art-height);
+    margin: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .art-svg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .contact {
+    padding-bottom: 6rem;
+  }
+}
+
+/* ==========================================================================
+   Wide (1000px and up): fixed side column
+   ========================================================================== */
+
+@media (min-width: 1000px) {
+  :root {
+    --side: clamp(224px, 23vw, 560px);
+    --gap: clamp(24px, 3vw, 56px);
+    --main-left: calc(var(--side) + var(--gap));
+    --top: clamp(36px, 8vh, 84px);
+    --measure: min(62ch, 52vw);
+    --text-end: calc(var(--main-left) + var(--measure));
+    --art-height: min(74vh, max(640px, 42vw));
+  }
+
+  .side {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: calc(var(--side) + 6px);
+    display: flex;
+    flex-direction: column;
+    padding: var(--top) 6px 0 0; /* 6px: room for focus rings */
+    text-align: right;
+    overflow: hidden auto; /* scrolls on its own only if the window is very short */
+  }
+
+  .name-block,
+  .toc {
+    padding: 0 0 0 20px;
+  }
+
+  .name {
+    font-size: min(calc(var(--side) * 0.146), 4.25rem);
+  }
+
+  .name-native {
+    font-size: max(1.5rem, min(calc(var(--side) * 0.09), 2.6rem));
+  }
+
+  .scribble {
+    margin-left: auto;
+  }
+
+  .subline span {
+    display: block;
+  }
+
+  .subline .sep {
+    display: none;
+  }
+
+  .toc {
+    margin-top: clamp(18px, 4.5vh, 40px);
+    font-size: max(0.9375rem, 0.9em);
+    line-height: 1.75;
+  }
+
+  .toc ul {
+    display: block;
+  }
+
+  .toc a {
+    padding-block: 0;
+  }
+
+  /* a small gold ball marks the section being read */
+  .toc a[aria-current]::before {
+    content: "";
+    display: inline-block;
+    width: 0.5em;
+    height: 0.5em;
+    margin-right: 0.7em;
+    border-radius: 50%;
+    background-color: var(--sun);
+    vertical-align: 0.08em;
+  }
+
+  .toc .toc-cv {
+    margin-top: 0.5em;
+  }
+
+  /* The board takes whatever height is left and bleeds off the bottom-left
+     corner; if the window is short it scales down, anchored to that corner,
+     and below a useful size it is left out. */
+  .board {
+    position: relative;
+    flex: 1 1 0;
+    min-height: 0;
+    margin: 20px 0 0;
+    overflow: hidden;
+    container-type: size;
+  }
+
+  .board-svg {
+    position: absolute;
+    left: -14px;
+    bottom: -12px;
+    width: calc(100% + 14px);
+    height: calc(100% + 12px);
+    aspect-ratio: auto;
+  }
+
+  main,
+  .contact {
+    margin-left: var(--main-left);
+    width: min(var(--measure), calc(100% - var(--main-left) - 24px));
+    max-width: none;
+    padding-inline: 0;
+  }
+
+  main {
+    padding-top: var(--top);
+  }
+
+  section + section,
+  .contact {
+    margin-top: clamp(3.75rem, 9vh, 5rem);
+  }
+
+  /* jumping to a section lands its heading level with the name */
+  section[id] {
+    scroll-margin-top: var(--top);
+  }
+}
+
+/* The board needs room under the name and section list */
+@media (min-width: 1000px) and (max-height: 560px) {
+  .board {
+    visibility: hidden;
+  }
+}
+
+@container (max-height: 124px) {
+  .board-svg {
+    visibility: hidden;
+  }
+}
+
+/* Big monitors: the type grows a little so the page keeps its balance */
+@media (min-width: 1700px) {
+  body {
+    font-size: clamp(1.0625rem, 0.56rem + 0.47vw, 1.25rem);
+  }
+
+  h2 {
+    font-size: 1.9em;
+  }
+}
+
+/* ==========================================================================
+   Reduced motion: no smooth scrolling, no transitions. site.js never
+   starts the animation, so both drawings show their finished state.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Print: black on white, no decorative art. Web addresses are written out
+   after outside links, since paper cannot be clicked.
    ========================================================================== */
 
 @media print {
-  .skip-link {
-    display: none;
+  :root {
+    --paper: #fff;
+    --ink: #000;
+    --ink-soft: #000;
+    --pitch: #000;
+    --ochre: #000;
+    --sun: #000;
   }
 
-  .hero {
-    background: none;
-    color: var(--ink);
-    min-height: auto;
-    padding-block: var(--space-3);
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 10pt;
+    line-height: 1.6;
   }
 
-  .hero-pitch {
-    display: none;
+  .skip-link,
+  .scribble,
+  .toc,
+  .board,
+  .corner-art {
+    display: none !important;
   }
 
-  .hero-name,
-  .hero-subline {
-    color: var(--ink);
+  .side {
+    position: static;
+    display: block;
+    width: auto;
+    padding: 0 0 1.25rem;
+    text-align: left;
+    overflow: visible;
   }
 
-  .hero-links a {
-    color: var(--ink);
+  .name-block {
+    padding: 0;
+  }
+
+  .name {
+    font-size: 26pt;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .name span,
+  .subline span,
+  .subline .sep {
+    display: inline;
+  }
+
+  main,
+  .contact {
+    width: auto;
+    max-width: none;
+    margin-left: 0;
+    padding: 0;
+  }
+
+  section + section,
+  .contact {
+    margin-top: 1.5rem;
+    padding-bottom: 0;
+  }
+
+  h2 {
+    font-size: 18pt;
   }
 
   a {
-    color: var(--ink);
+    color: #000;
+    text-decoration-color: #000;
+    text-decoration-thickness: 1px;
   }
 
-  .cv-button {
-    border: 1px solid var(--ink);
+  a[href^="http"]:not([href*="doi.org"])::after {
+    content: " (" attr(href) ")";
+    font-size: 0.85em;
+    overflow-wrap: anywhere;
+  }
+
+  .fingerprints-figure {
+    margin-block: 1.2em 1.4em;
+  }
+
+  .fingerprints-figure img {
+    max-width: 11.5cm;
+    mix-blend-mode: normal;
+  }
+
+  h2,
+  h3 {
+    break-after: avoid;
+  }
+
+  figure,
+  li {
+    break-inside: avoid;
   }
 }

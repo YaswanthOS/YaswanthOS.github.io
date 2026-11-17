@@ -10,181 +10,250 @@
 <meta property="og:description" content="ML researcher working on football tracking data. Player movement fingerprints, unsupervised learning, sports analytics.">
 <meta property="og:type" content="website">
 
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FBF9F3">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@800&family=IBM+Plex+Mono:wght@400&display=swap" rel="stylesheet">
+<!-- Text face: IBM Plex Mono, for everything. Chilanka, a handwritten
+     Malayalam face, for the name in Malayalam only. -->
+<link href="https://fonts.googleapis.com/css2?family=Chilanka&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<!-- Name only: Bricolage Grotesque 800, subset to the letters of the name
+     (the text= parameter). If the name block ever changes, update text= too. -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&display=swap&text=YASWNTHO.%20%C2%A0" rel="stylesheet">
 
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231F4D2E'/%3E%3Cpath d='M9 9L23 23M23 9L9 23' stroke='%23F7F4EA' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 
 <link rel="stylesheet" href="styles.css">
 
-<!-- No-JS fallback: shows the run already drawn (Act 1's resolved state) -->
-<noscript>
-<style>
-  .trajectory { stroke-dasharray: none; stroke-dashoffset: 0; }
-  .end-mark { opacity: 1; }
-</style>
-</noscript>
-
-<script src="hero.js" defer></script>
+<!-- Motion gate. Without JS, or with prefers-reduced-motion, both drawings
+     simply show their finished state. With motion allowed, .anim hides the
+     moving pieces until site.js has put them on their starting marks, so
+     nothing flashes; the timeout shows the finished drawing if site.js
+     never starts. -->
+<script>
+(function (root) {
+  try {
+    if (window.matchMedia && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      root.classList.add("anim");
+      setTimeout(function () {
+        if (!root.classList.contains("anim-started")) root.classList.remove("anim");
+      }, 4000);
+    }
+  } catch (e) {}
+})(document.documentElement);
+</script>
+<script src="site.js" defer></script>
 </head>
 <body>
 <a class="skip-link" href="#main">Skip to content</a>
 
-<header class="hero">
-  <svg
-    class="hero-pitch"
-    viewBox="0 0 1200 700"
-    preserveAspectRatio="xMidYMid slice"
-    role="img"
-    aria-label="Chalkboard tactics diagram, in two parts. First, two full teams of six shape up in the attacking third: an arrow shows the marking fullback watching the third man, then a winger's short run in behind pulls that fullback away to track the run instead, leaving the third man free to receive — a pulse marks him open, then the deep playmaker plays the ball into the space just vacated, onto his feet, with a second pulse on arrival. Second, the scene zooms into just that run and replays it as its underlying construction: a degree-5 Bézier curve with its six control points and their connecting polygon."
-  >
-    <defs>
-      <filter id="chalk-wobble" x="-20%" y="-20%" width="140%" height="140%">
-        <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="noise"/>
-        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"/>
-      </filter>
+<!-- Shared SVG filters: the hand-drawn wobble and the paint textures. -->
+<svg class="svg-defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <!-- Chalk lines on the board (same recipe as the old hero) -->
+    <filter id="chalk-wobble" x="-20%" y="-20%" width="140%" height="140%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.018" numOctaves="2" seed="7" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
 
-      <!-- Reveal mask for the passing lane, drawn on the same way as the run below -->
-      <mask id="pass-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="1200" height="700">
-        <path class="pass-reveal-path" d="M620,380 Q720,330 830,390" stroke="#fff" stroke-width="14" fill="none" stroke-linecap="round"/>
-      </mask>
-    </defs>
+    <!-- Painted pitch-green swatch: rough edge, uneven wash, chalk dust -->
+    <filter id="paint-green" x="-4%" y="-5%" width="108%" height="110%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014 0.03" numOctaves="3" seed="4" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="11" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.008 0.02" numOctaves="2" seed="21" result="blotch"/>
+      <feColorMatrix in="blotch" type="matrix" values="0 0 0 0 0.19  0 0 0 0 0.42  0 0 0 0 0.27  0 0 0 2.4 -1.05" result="wash"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.3" numOctaves="2" seed="9" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0.97  0 0 0 0 0.96  0 0 0 0 0.92  0 0 0 1.7 -1.03" result="dust"/>
+      <feMerge result="tex"><feMergeNode in="wash"/><feMergeNode in="dust"/></feMerge>
+      <feComposite in="tex" in2="shape" operator="in" result="texIn"/>
+      <feMerge><feMergeNode in="shape"/><feMergeNode in="texIn"/></feMerge>
+    </filter>
 
-    <!-- Pitch markings: halfway line, centre circle, penalty + six-yard boxes -->
-    <g class="pitch" filter="url(#chalk-wobble)">
-      <rect class="pitch-lines" x="40" y="40" width="1120" height="620" rx="2"/>
-      <line class="pitch-lines" x1="600" y1="40" x2="600" y2="660"/>
-      <circle class="pitch-lines" cx="600" cy="350" r="90"/>
+    <!-- Gouache sun: rough edge, blotchy wash, dark and light grain -->
+    <filter id="paint-gold" x="-8%" y="-8%" width="116%" height="116%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.03" numOctaves="3" seed="5" result="warp"/>
+      <feDisplacementMap in="SourceGraphic" in2="warp" scale="9" xChannelSelector="R" yChannelSelector="G" result="shape"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.011" numOctaves="2" seed="14" result="blotch"/>
+      <feColorMatrix in="blotch" type="matrix" values="0 0 0 0 0.80  0 0 0 0 0.50  0 0 0 0 0.09  0 0 0 2.6 -1.1" result="wash"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="2" seed="11" result="grainA"/>
+      <feColorMatrix in="grainA" type="matrix" values="0 0 0 0 0.66  0 0 0 0 0.45  0 0 0 0 0.10  0 0 0 3.4 -1.9" result="dark"/>
+      <feTurbulence type="fractalNoise" baseFrequency="0.6" numOctaves="2" seed="30" result="grainB"/>
+      <feColorMatrix in="grainB" type="matrix" values="0 0 0 0 0.97  0 0 0 0 0.86  0 0 0 0 0.52  0 0 0 3.4 -2.0" result="light"/>
+      <feMerge result="tex"><feMergeNode in="wash"/><feMergeNode in="dark"/><feMergeNode in="light"/></feMerge>
+      <feComposite in="tex" in2="shape" operator="in" result="texIn"/>
+      <feMerge><feMergeNode in="shape"/><feMergeNode in="texIn"/></feMerge>
+    </filter>
 
-      <rect class="pitch-lines" x="40" y="185" width="180" height="330"/>
-      <rect class="pitch-lines" x="40" y="270" width="60" height="160"/>
+    <!-- Ink lines in the corner sketch: two passes with different wobble,
+         so each line looks drawn twice by hand -->
+    <filter id="ink-a" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.013" numOctaves="2" seed="3" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="8" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <filter id="ink-b" x="-10%" y="-10%" width="120%" height="120%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.019" numOctaves="2" seed="17" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="G" yChannelSelector="R"/>
+    </filter>
+    <!-- Runs in the corner sketch: gentle wobble, region set in the sketch's
+         own units so short, thin paths are never clipped -->
+    <filter id="ink-run" filterUnits="userSpaceOnUse" x="-20" y="-20" width="480" height="664">
+      <feTurbulence type="fractalNoise" baseFrequency="0.014" numOctaves="1" seed="8" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="2.4" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <!-- The underline beneath the name. Its region is set in the drawing's
+         own units: the strokes are too thin for a percentage margin. -->
+    <filter id="ink-scribble" filterUnits="userSpaceOnUse" x="-6" y="-8" width="272" height="40">
+      <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="2" seed="6" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="4.5" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+</svg>
 
-      <rect class="pitch-lines" x="980" y="185" width="180" height="330"/>
-      <rect class="pitch-lines" x="1100" y="270" width="60" height="160"/>
-    </g>
+<header class="side">
+  <div class="name-block">
+    <h1 class="name"><span>Yaswanth</span> <span>O.&nbsp;S.</span></h1>
+    <p class="name-native" lang="ml">യശ്വന്ത്</p>
+    <svg class="scribble" viewBox="0 0 260 24" aria-hidden="true" focusable="false">
+      <g filter="url(#ink-scribble)">
+        <path d="M8,9 C52,3 96,14 142,8 S218,3 252,9"/>
+        <path class="scribble-return" d="M250,10 C200,19 130,13 74,19"/>
+      </g>
+    </svg>
+    <p class="subline"><span>Machine Learning</span> <span class="sep">&middot;</span> <span>Football</span> <span class="sep">&middot;</span> <span>Tracking Data</span></p>
+  </div>
 
-    <circle class="pitch-spot" cx="600" cy="350" r="4"/>
-    <circle class="pitch-spot" cx="150" cy="350" r="4"/>
-    <circle class="pitch-spot" cx="1050" cy="350" r="4"/>
+  <nav class="toc" aria-label="Sections">
+    <ul role="list">
+      <li><a href="#about">About</a></li>
+      <li><a href="#research">Research</a></li>
+      <li><a href="#publications">Publications</a></li>
+      <li><a href="#selected-work">Selected work</a></li>
+      <li><a href="#contact">CV &amp; Contact</a></li>
+      <li class="toc-cv"><a href="assets/cv.pdf">CV (PDF)</a></li>
+    </ul>
+  </nav>
 
-    <!-- Defending team: back six, static except D1 (the marking fullback
-         the run pulls out of position). Defaults to its final beaten mark;
-         hero.js resets it to the starting mark and animates the chase. -->
-    <circle class="defender-dot" cx="940" cy="200" r="9"/> <!-- D2: centre-back -->
-    <circle class="defender-dot" cx="950" cy="480" r="9"/> <!-- D3: centre-back -->
-    <circle class="defender-dot" cx="760" cy="300" r="9"/> <!-- D4: screening midfielder -->
-    <circle class="defender-dot" cx="1000" cy="350" r="7" opacity="0.6"/> <!-- D5: sweeper / cover centre-back -->
-    <circle class="defender-dot" cx="880" cy="170" r="7" opacity="0.6"/> <!-- D6: opposite-side fullback -->
-    <circle class="defender-dot drift" cx="970" cy="395" r="9"/> <!-- D1: fullback, chasing the run, beaten to it -->
+  <!-- The chalkboard from the old hero, in a smaller role: a painted
+       swatch of pitch with the same tactical sequence drawn on it. -->
+  <div class="board">
+    <!-- Shown only while the drawings are animating; pauses both. -->
+    <button class="motion-toggle" type="button" aria-label="Pause the animations"><span class="motion-icon" aria-hidden="true">❚❚</span><span class="motion-text" aria-hidden="true">pause</span></button>
+    <svg
+      class="board-svg"
+      viewBox="560 112 632 472"
+      preserveAspectRatio="xMinYMax meet"
+      role="img"
+      aria-label="Chalkboard tactics diagram of the attacking third, with two teams of six. An arrow shows the marking fullback watching the third man; then a winger's short run in behind pulls that fullback away to track the run instead, leaving the third man free to receive. A pulse marks him open, then the deep playmaker plays the ball into the space just vacated, onto his feet, with a second pulse on arrival."
+    >
+      <defs>
+        <clipPath id="board-clip">
+          <rect x="578" y="130" width="596" height="436"/>
+        </clipPath>
+        <!-- Reveal mask for the passing lane, drawn on the same way as the run -->
+        <mask id="pass-reveal" maskUnits="userSpaceOnUse" x="560" y="112" width="632" height="472">
+          <path class="pass-reveal-path" d="M620,380 Q720,330 830,390" stroke="#fff" stroke-width="16" fill="none" stroke-linecap="round"/>
+        </mask>
+      </defs>
 
-    <!-- The mark (Act 1, beat 0): a gold arrow, D1's starting mark to A3,
-         showing D1 is marking him. Fades out as the run begins; hidden by
-         default for no-JS / reduced motion. -->
-    <g class="marking-arrow">
-      <path class="marking-arrow-shaft" d="M842.5,427.6 Q844.1,413.6 834.4,403.3"/>
-      <path class="marking-arrow-head" d="M838.2,414.7 L834.4,403.3 L845.5,407.7"/>
-    </g>
+      <rect class="swatch" x="572" y="124" width="608" height="448" rx="5" filter="url(#paint-green)"/>
 
-    <!-- The pass: A1 (ball carrier) to A3, now unmarked. Dashed to read
-         differently from the solid run line. -->
-    <path class="pass-lane" d="M620,380 Q720,330 830,390" mask="url(#pass-reveal)"/>
+      <g clip-path="url(#board-clip)">
+        <!-- Pitch markings: halfway line, centre circle, penalty area, arc, six-yard box -->
+        <g class="pitch" filter="url(#chalk-wobble)">
+          <line class="pitch-lines" x1="600" y1="40" x2="600" y2="660"/>
+          <circle class="pitch-lines" cx="600" cy="350" r="90"/>
+          <line class="pitch-lines" x1="1160" y1="40" x2="1160" y2="660"/>
+          <rect class="pitch-lines" x="980" y="185" width="180" height="330"/>
+          <rect class="pitch-lines" x="1100" y="270" width="60" height="160"/>
+          <path class="pitch-lines" d="M980,272 A105,105 0 0 0 980,428"/>
+        </g>
 
-    <!-- Attacking team, six dots. A1 holds the ball; A3 is the third man
-         the run frees up. Only .runner is moved by hero.js. -->
-    <circle class="player-dot" cx="620" cy="380" r="9"/> <!-- A1: deep playmaker / ball carrier -->
-    <circle class="player-dot" cx="830" cy="390" r="9"/> <!-- A3: third man, the beneficiary -->
-    <circle class="player-dot" cx="700" cy="170" r="7" opacity="0.6"/> <!-- A4: wide outlet, kept quiet -->
-    <circle class="player-dot" cx="880" cy="530" r="7" opacity="0.6"/> <!-- A5: underlapping outlet, kept quiet -->
-    <circle class="player-dot" cx="960" cy="300" r="7" opacity="0.6"/> <!-- A6: central forward inside the block -->
+        <circle class="pitch-spot" cx="600" cy="350" r="4.5"/>
+        <circle class="pitch-spot" cx="1050" cy="350" r="4.5"/>
 
-    <!-- The run: a degree-5 Bézier (6 control points), sampled to a
-         polyline since SVG paths have no native command past cubic.
-         hero.js draws it on via stroke-dashoffset. The 6 control points
-         stay hidden until Act 2's zoomed replay — see hero.js startAct2(). -->
-    <path
-      class="trajectory"
-      d="M800.0,480.0 L802.6,483.2 L805.4,486.1 L808.5,488.7 L811.7,491.1 L815.0,493.2 L818.6,494.9 L822.3,496.4 L826.2,497.7 L830.2,498.6 L834.3,499.3 L838.5,499.7 L842.9,499.9 L847.3,499.8 L851.9,499.4 L856.5,498.8 L861.2,497.9 L865.9,496.8 L870.7,495.5 L875.5,494.0 L880.4,492.3 L885.3,490.3 L890.2,488.2 L895.1,485.9 L900.0,483.4 L904.9,480.7 L909.8,477.9 L914.7,475.0 L919.5,471.9 L924.3,468.6 L929.1,465.3 L933.8,461.9 L938.4,458.3 L943.0,454.7 L947.6,451.0 L952.0,447.3 L956.4,443.5 L960.7,439.7 L964.9,435.8 L969.1,431.9 L973.1,428.0 L977.0,424.1 L980.8,420.2 L984.6,416.3 L988.2,412.4 L991.7,408.6 L995.1,404.8 L998.4,401.1 L1001.5,397.4 L1004.5,393.8 L1007.5,390.3 L1010.3,386.8 L1012.9,383.4 L1015.5,380.2 L1017.9,377.0 L1020.2,373.9 L1022.4,370.9 L1024.5,368.0 L1026.4,365.2 L1028.3,362.6 L1030.0,360.0"
-      stroke-dasharray="320"
-      stroke-dashoffset="320"
-    />
+        <!-- Defending team: back six, static except D1 (the marking fullback
+             the run pulls out of position). Defaults to its final beaten
+             mark; site.js resets it to the starting mark and animates the chase. -->
+        <circle class="defender-dot" cx="940" cy="200" r="9"/> <!-- D2: centre-back -->
+        <circle class="defender-dot" cx="950" cy="480" r="9"/> <!-- D3: centre-back -->
+        <circle class="defender-dot" cx="760" cy="300" r="9"/> <!-- D4: screening midfielder -->
+        <circle class="defender-dot quiet" cx="1000" cy="350" r="7"/> <!-- D5: sweeper / cover centre-back -->
+        <circle class="defender-dot quiet" cx="880" cy="170" r="7"/> <!-- D6: opposite-side fullback -->
+        <circle class="defender-dot drift live" cx="970" cy="395" r="9"/> <!-- D1: fullback, chasing the run, beaten to it -->
 
-    <!-- Bézier construction polygon (P0–P5), fades in with Act 2 -->
-    <path class="control-polygon" d="M800,480 L830,520 L900,510 L970,440 L1010,390 L1030,360" opacity="0"/>
+        <!-- The mark (beat 0): a gold arrow, D1's starting mark to A3,
+             showing D1 is marking him. Fades out as the run begins; hidden
+             by default for no-JS / reduced motion. -->
+        <g class="marking-arrow">
+          <path class="marking-arrow-shaft" d="M842.5,427.6 Q844.1,413.6 834.4,403.3"/>
+          <path class="marking-arrow-head" d="M838.2,414.7 L834.4,403.3 L845.5,407.7"/>
+        </g>
 
-    <circle class="control-dot" cx="800" cy="480" r="4" opacity="0"/>
-    <circle class="control-dot" cx="830" cy="520" r="4" opacity="0"/>
-    <circle class="control-dot" cx="900" cy="510" r="4" opacity="0"/>
-    <circle class="control-dot" cx="970" cy="440" r="4" opacity="0"/>
-    <circle class="control-dot" cx="1010" cy="390" r="4" opacity="0"/>
-    <circle class="control-dot" cx="1030" cy="360" r="4" opacity="0"/>
+        <!-- The pass: A1 (ball carrier) to A3, now unmarked. Dashed to read
+             differently from the solid run line. -->
+        <path class="pass-lane live" d="M620,380 Q720,330 830,390" mask="url(#pass-reveal)"/>
 
-    <!-- Defaults to the run's end point for no-JS / reduced motion -->
-    <circle class="player-dot runner" cx="1030" cy="360" r="9"/>
+        <!-- Attacking team, six dots. A1 holds the ball; A3 is the third man
+             the run frees up. Only .runner is moved by site.js. -->
+        <circle class="player-dot" cx="620" cy="380" r="9"/> <!-- A1: deep playmaker / ball carrier -->
+        <circle class="player-dot" cx="830" cy="390" r="9"/> <!-- A3: third man, the beneficiary -->
+        <circle class="player-dot quiet" cx="700" cy="170" r="7"/> <!-- A4: wide outlet, kept quiet -->
+        <circle class="player-dot quiet" cx="880" cy="530" r="7"/> <!-- A5: underlapping outlet, kept quiet -->
+        <circle class="player-dot quiet" cx="960" cy="300" r="7"/> <!-- A6: central forward inside the block -->
 
-    <g class="end-mark" opacity="0" transform="translate(1030,360)">
-      <line x1="-9" y1="-9" x2="9" y2="9"/>
-      <line x1="9" y1="-9" x2="-9" y2="9"/>
-    </g>
+        <!-- The run: a degree-5 Bézier (6 control points), sampled to a
+             polyline since SVG paths have no native command past cubic.
+             site.js draws it on via stroke-dashoffset. The same curve,
+             turned to attack up the page, is the one in the corner sketch. -->
+        <path
+          class="trajectory live"
+          d="M800.0,480.0 L802.6,483.2 L805.4,486.1 L808.5,488.7 L811.7,491.1 L815.0,493.2 L818.6,494.9 L822.3,496.4 L826.2,497.7 L830.2,498.6 L834.3,499.3 L838.5,499.7 L842.9,499.9 L847.3,499.8 L851.9,499.4 L856.5,498.8 L861.2,497.9 L865.9,496.8 L870.7,495.5 L875.5,494.0 L880.4,492.3 L885.3,490.3 L890.2,488.2 L895.1,485.9 L900.0,483.4 L904.9,480.7 L909.8,477.9 L914.7,475.0 L919.5,471.9 L924.3,468.6 L929.1,465.3 L933.8,461.9 L938.4,458.3 L943.0,454.7 L947.6,451.0 L952.0,447.3 L956.4,443.5 L960.7,439.7 L964.9,435.8 L969.1,431.9 L973.1,428.0 L977.0,424.1 L980.8,420.2 L984.6,416.3 L988.2,412.4 L991.7,408.6 L995.1,404.8 L998.4,401.1 L1001.5,397.4 L1004.5,393.8 L1007.5,390.3 L1010.3,386.8 L1012.9,383.4 L1015.5,380.2 L1017.9,377.0 L1020.2,373.9 L1022.4,370.9 L1024.5,368.0 L1026.4,365.2 L1028.3,362.6 L1030.0,360.0"
+        />
 
-    <!-- The ball: held by A1 until the pass, then travels the pass-lane
-         path. Defaults to its settled position at A3 for no-JS / reduced
-         motion. -->
-    <g class="ball" transform="translate(830,390)">
-      <circle r="5"/>
-      <path class="ball-seam" d="M-2.5,-1.2 Q0,-3 2.5,-1.2"/>
-      <path class="ball-seam" d="M-2.5,1.2 Q0,3 2.5,1.2"/>
-    </g>
+        <!-- Defaults to the run's end point for no-JS / reduced motion -->
+        <circle class="player-dot runner live" cx="1030" cy="360" r="9"/>
 
-    <!-- Arrival highlight: pulses on A3 once the pass lands -->
-    <circle class="pass-highlight" cx="830" cy="390" r="15"/>
-  </svg>
+        <g class="end-mark live" transform="translate(1030,360)">
+          <line x1="-9" y1="-9" x2="9" y2="9"/>
+          <line x1="9" y1="-9" x2="-9" y2="9"/>
+        </g>
 
-  <!-- preserveAspectRatio isn't CSS-stylable, so the mobile slice->meet
-       swap runs here, inline and synchronous, before first paint. -->
-  <script>
-  (function () {
-    var svg = document.querySelector(".hero-pitch");
-    if (!svg) return;
-    var mq = window.matchMedia("(max-width: 640px)");
-    function applyAspect(e) {
-      svg.setAttribute("preserveAspectRatio", e.matches ? "xMidYMid meet" : "xMidYMid slice");
-    }
-    applyAspect(mq);
-    if (mq.addEventListener) {
-      mq.addEventListener("change", applyAspect);
-    } else if (mq.addListener) {
-      mq.addListener(applyAspect); // Safari <14 fallback
-    }
-  })();
-  </script>
+        <!-- The ball: held by A1 until the pass, then travels the pass-lane
+             path. Defaults to its settled position at A3 for no-JS /
+             reduced motion. -->
+        <g class="ball live" transform="translate(830,390)">
+          <circle r="6"/>
+          <path class="ball-seam" d="M-3,-1.4 Q0,-3.6 3,-1.4"/>
+          <path class="ball-seam" d="M-3,1.4 Q0,3.6 3,1.4"/>
+        </g>
 
-  <div class="hero-content">
-    <div class="hero-name-block">
-      <h1 class="hero-name">Yaswanth O. S.</h1>
-      <p class="hero-subline">Machine Learning &middot; Football &middot; Tracking Data</p>
-    </div>
-
-    <nav class="hero-links" aria-label="Hero shortcuts">
-      <a href="#research">Research &darr;</a>
-      <a href="assets/cv.pdf">CV (PDF)</a>
-    </nav>
+        <!-- Arrival highlight: pulses on A3 once the pass lands -->
+        <circle class="pass-highlight live" cx="830" cy="390" r="16"/>
+      </g>
+    </svg>
   </div>
 </header>
 
 <main id="main" tabindex="-1">
 
   <section id="about" aria-labelledby="about-heading">
-    <div class="section-divider"><span class="eyebrow">About</span></div>
-    <h2 id="about-heading" class="visually-hidden">About</h2>
+    <h2 id="about-heading">About</h2>
+    <img class="portrait" src="assets/portrait.webp" alt="Illustrated portrait of Yaswanth: curly dark hair, a beard and a navy shirt with the sleeves rolled up, arms crossed, smiling." width="720" height="797" decoding="async">
+    <p class="greeting">Hi, I&rsquo;m Yaswanth.</p>
     <p>I&rsquo;m a machine learning researcher. I&rsquo;ve worked on problems ranging from classifying newspaper text to Bayesian models of athletes&rsquo; facial expressions, and my current interest is football. My recent work uses unsupervised learning on player tracking data, representing runs as Bézier curves and clustering them into movement &ldquo;fingerprints&rdquo; that describe how each player moves.</p>
     <p>I did my BS-MS in Data Science at IISER Thiruvananthapuram, graduating in 2026. My thesis used Bundesliga tracking data, in collaboration with the Institute of Exercise Training and Sport Informatics at the German Sport University Cologne. I&rsquo;m looking for PhD positions and data science roles in sports analytics.</p>
-    <p class="honours">Sports Hall of Fame, IISER TVM (2026) <span class="medal-dot" aria-hidden="true">&bull;</span> Inter-IISER Sports Meet: gold 2025, silver 2023 and 2024 <span class="medal-dot" aria-hidden="true">&bull;</span> Captain, IISER TVM football, 2025 <span class="medal-dot" aria-hidden="true">&bull;</span> Former Sports Secretary, IISER TVM</p>
+    <ul class="dash-list honours" role="list">
+      <li>Sports Hall of Fame, IISER TVM (2026)</li>
+      <li>Inter-IISER Sports Meet: gold 2025, silver 2023 and 2024</li>
+      <li>Captain, IISER TVM football, 2025</li>
+      <li>Former Sports Secretary, IISER TVM</li>
+    </ul>
   </section>
 
   <section id="research" aria-labelledby="research-heading">
-    <div class="section-divider"><span class="eyebrow">Research</span></div>
-    <h2 id="research-heading">Player Movement Fingerprints from Football Tracking Data</h2>
+    <h2 id="research-heading">Research</h2>
+    <h3 class="project-title">Player Movement Fingerprints from Football Tracking Data</h3>
     <p class="byline">Co-supervised by Prof. Daniel Memmert, German Sport University Cologne, and Dr. Alwin Poulose, IISER TVM</p>
 
     <p>I built a pipeline that extracts off-ball runs from raw 25&nbsp;Hz DFL Bundesliga tracking data, synchronised with event data, for nine matches. Each run is encoded as a quintic (degree-5) Bézier curve; the runs are clustered with Gaussian mixture models and combined with an 18-zone pitch grid into a movement profile for each player. I validated the profiles with permutation tests, bootstrap intervals and cross-validated baselines.</p>
@@ -196,64 +265,152 @@
       <figcaption>Five prototype run shapes, each the mean B&eacute;zier curve of one Gaussian-mixture cluster, on the 18-zone pitch grid. Public Bundesliga data (Bassek et al., 2025; CC&nbsp;BY&nbsp;4.0).</figcaption>
     </figure>
 
-    <h3 class="interests-heading">Research interests</h3>
+    <h3 class="sub-heading">Research interests</h3>
     <p>Valuing off-ball movement; learned representations of player trajectories; generative models of movement conditioned on player identity; more broadly, what tracking data can reveal about football that event data cannot.</p>
   </section>
 
   <section id="publications" aria-labelledby="publications-heading">
-    <div class="section-divider"><span class="eyebrow">Publications</span></div>
-    <h2 id="publications-heading" class="visually-hidden">Publications</h2>
-    <p class="publication">Gouri Lakshmi S., Bhagyasree G.&nbsp;H., Gowry Nandana M., <strong>Yaswanth O.&nbsp;S.</strong>, and Alwin Poulose. Global Refugee Analysis: Insights into Asylum Applications, Demographics, and Resettlement Trends. <em>2025 International Conference on Intelligent and Cloud Computing (ICoICC)</em>, Bhubaneswar, India, pp.&nbsp;1&ndash;6. IEEE, 2025. <a href="https://doi.org/10.1109/ICOICC64033.2025.11052011">doi:10.1109/ICOICC64033.2025.11052011</a></p>
+    <h2 id="publications-heading">Publications</h2>
+    <ul class="dash-list publications" role="list">
+      <li>Gouri Lakshmi S., Bhagyasree G.&nbsp;H., Gowry Nandana M., <strong>Yaswanth O.&nbsp;S.</strong>, and Alwin Poulose. Global Refugee Analysis: Insights into Asylum Applications, Demographics, and Resettlement Trends. <em>2025 International Conference on Intelligent and Cloud Computing (ICoICC)</em>, Bhubaneswar, India, pp.&nbsp;1&ndash;6. IEEE, 2025. <a href="https://doi.org/10.1109/ICOICC64033.2025.11052011">doi:10.1109/ICOICC64033.2025.11052011</a></li>
+    </ul>
   </section>
 
   <section id="selected-work" aria-labelledby="selected-work-heading">
-    <div class="section-divider"><span class="eyebrow">Selected work</span></div>
-    <h2 id="selected-work-heading" class="visually-hidden">Selected work</h2>
-    <table class="fixtures-list">
-      <caption class="visually-hidden">Selected work, with year</caption>
-      <tbody>
-        <tr>
-          <td><a href="https://github.com/YaswanthOS/net-time-assessment">Net playing time from tracking and event data, on the public Bundesliga dataset of Bassek et al. (2025)</a></td>
-          <td class="fixtures-date">2026</td>
-        </tr>
-        <tr>
-          <td>Bayesian multilevel modelling of athlete facial expressions (with the Memmert group, DSHS Cologne)</td>
-          <td class="fixtures-date">2026</td>
-        </tr>
-        <tr>
-          <td>Interactive clustering demo on public Bundesliga tracking data (Streamlit prototype)</td>
-          <td class="fixtures-date">2026</td>
-        </tr>
-        <tr>
-          <td>Text classification and information extraction for newspaper archives (India AI project, Kerala Police)</td>
-          <td class="fixtures-date">2025</td>
-        </tr>
-        <tr>
-          <td>Geospatial analysis of satellite atmospheric data, Physical Research Laboratory</td>
-          <td class="fixtures-date">2024</td>
-        </tr>
-      </tbody>
-    </table>
+    <h2 id="selected-work-heading">Selected work</h2>
+    <ul class="work-list" role="list">
+      <li>
+        <span class="year">2026</span>
+        <span class="what"><a href="https://github.com/YaswanthOS/net-time-assessment">Net playing time from tracking and event data, on the public Bundesliga dataset of Bassek et al. (2025)</a></span>
+      </li>
+      <li>
+        <span class="year">2026</span>
+        <span class="what">Bayesian multilevel modelling of athlete facial expressions (with the Memmert group, DSHS Cologne)</span>
+      </li>
+      <li>
+        <span class="year">2026</span>
+        <span class="what">Interactive clustering demo on public Bundesliga tracking data (Streamlit prototype)</span>
+      </li>
+      <li>
+        <span class="year">2025</span>
+        <span class="what">Text classification and information extraction for newspaper archives (India AI project, Kerala Police)</span>
+      </li>
+      <li>
+        <span class="year">2024</span>
+        <span class="what">Geospatial analysis of satellite atmospheric data, Physical Research Laboratory</span>
+      </li>
+    </ul>
   </section>
 
 </main>
 
-<footer id="contact">
-  <div class="section-divider"><span class="eyebrow">CV &amp; Contact</span></div>
+<footer>
+  <section id="contact" class="contact" aria-labelledby="contact-heading">
+    <h2 id="contact-heading">CV &amp; Contact</h2>
+    <ul class="dash-list contact-list" role="list">
+      <li><a href="assets/cv.pdf">CV (PDF)</a></li>
+      <li><a href="mailto:yaswanthos2026@gmail.com">yaswanthos2026@gmail.com</a></li>
+      <li><a href="mailto:yaswanth2021@alumni.iisertvm.ac.in">yaswanth2021@alumni.iisertvm.ac.in</a></li>
+      <li><a href="https://scholar.google.com/citations?user=-e1knOcAAAAJ">Google Scholar</a></li>
+      <li><a href="https://github.com/YaswanthOS">GitHub</a></li>
+      <li><a href="https://linkedin.com/in/yaswanth-o-s">LinkedIn</a></li>
+    </ul>
+  </section>
 
-  <a class="cv-button" href="assets/cv.pdf">CV (PDF)</a>
+  <!-- Corner sketch: the penalty area from above, attacking up the page.
+       The defending team (red rings) holds a back four and two holding
+       midfielders. The striker's decoy run drops deep and wide and drags a
+       centre-back out of the line; the gap he leaves is painted gold, and a
+       through ball goes into it for a midfielder arriving from between the
+       lines. Every moving piece ships at its final state; site.js plays the
+       sequence on a loop. -->
+  <div class="corner-art">
+    <svg
+      class="art-svg"
+      viewBox="0 0 440 624"
+      preserveAspectRatio="xMaxYMax meet"
+      role="img"
+      aria-label="Hand-drawn sketch of a penalty area seen from above. The defending team stands in a back four with two holding midfielders. The striker makes a decoy run, dropping deep and wide, and pulls a centre-back out of the back line. The gap he leaves is painted gold as open space, and a through ball goes into it for a midfielder arriving from between the lines."
+    >
+      <defs>
+        <g id="art-lines">
+          <!-- goal line, with the line trailing off to the left -->
+          <path d="M112,40 H446 M84,40 h14 M62,40 h8"/>
+          <!-- goal frame -->
+          <path d="M221.4,40 V13 H338.6 V40"/>
+          <!-- six-yard box -->
+          <path d="M133.4,40 V128 H426.6 V40"/>
+          <!-- edge of the penalty area, trailing off to the left -->
+          <path d="M46,304 H446 M22,304 h13"/>
+          <!-- penalty arc -->
+          <path d="M163,304 A146.4,146.4 0 0 0 397,304"/>
+        </g>
+        <clipPath id="goal-clip"><rect x="222" y="14" width="116" height="26"/></clipPath>
+        <!-- Reveal mask for the dashed through ball, drawn on like a run -->
+        <mask id="art-pass-reveal" maskUnits="userSpaceOnUse" x="0" y="0" width="440" height="624">
+          <path class="art-pass-reveal-path" d="M290,540 Q262,410 240,258" stroke="#fff" stroke-width="14" fill="none" stroke-linecap="round"/>
+        </mask>
+      </defs>
 
-  <p class="contact-line">
-    <a href="mailto:yaswanthos2026@gmail.com">yaswanthos2026@gmail.com</a>
-    <span aria-hidden="true">&middot;</span>
-    <a href="mailto:yaswanth2021@alumni.iisertvm.ac.in">yaswanth2021@alumni.iisertvm.ac.in</a>
-    <span aria-hidden="true">&middot;</span>
-    <a href="https://scholar.google.com/citations?user=-e1knOcAAAAJ">Google Scholar</a>
-    <span aria-hidden="true">&middot;</span>
-    <a href="https://github.com/YaswanthOS">GitHub</a>
-    <span aria-hidden="true">&middot;</span>
-    <a href="https://linkedin.com/in/yaswanth-o-s">LinkedIn</a>
-  </p>
+      <!-- the space the decoy run opens, painted gold -->
+      <g class="art-space live">
+        <ellipse class="art-space-paint" cx="228" cy="268" rx="76" ry="64" filter="url(#paint-gold)"/>
+        <ellipse class="art-space-outline" cx="222" cy="273" rx="77" ry="65" filter="url(#ink-b)"/>
+      </g>
+
+      <!-- goal net -->
+      <g class="art-net" clip-path="url(#goal-clip)" filter="url(#ink-b)">
+        <path d="M214,40 l27,-27 M227,40 l27,-27 M240,40 l27,-27 M253,40 l27,-27 M266,40 l27,-27 M279,40 l27,-27 M292,40 l27,-27 M305,40 l27,-27 M318,40 l27,-27"/>
+        <path d="M346,40 l-27,-27 M333,40 l-27,-27 M320,40 l-27,-27 M307,40 l-27,-27 M294,40 l-27,-27 M281,40 l-27,-27 M268,40 l-27,-27 M255,40 l-27,-27 M242,40 l-27,-27"/>
+      </g>
+
+      <!-- pitch markings, drawn twice -->
+      <use class="art-lines" href="#art-lines" filter="url(#ink-a)"/>
+      <use class="art-lines art-lines-second" href="#art-lines" filter="url(#ink-b)"/>
+
+      <!-- the defending shape: back line (bent where the centre-back has
+           been pulled out) and the line of two holding midfielders -->
+      <polyline class="art-shape art-backline live" points="64,352 150,420 330,338 425,350"/>
+      <line class="art-shape" x1="200" y1="470" x2="350" y2="472"/>
+
+      <!-- where the three movers started -->
+      <circle class="art-ghost art-ghost-att live" cx="268" cy="326" r="8.5"/>
+      <circle class="art-ghost art-ghost-def live" cx="205" cy="336" r="8.5"/>
+      <circle class="art-ghost art-ghost-att live" cx="300" cy="420" r="8.5"/>
+
+      <!-- movement, in ink: the centre-back dragged out, the decoy run,
+           the late run into the space, and the through ball -->
+      <path class="art-drag live" d="M205,336 Q190,392 150,420" filter="url(#ink-run)"/>
+      <path class="art-run art-decoy live" d="M268,326 C262,392 200,452 118,468" filter="url(#ink-run)"/>
+      <path class="art-run art-arrive live" d="M300,420 Q300,330 232,266" filter="url(#ink-run)"/>
+      <path class="art-pass live" d="M290,540 Q262,410 240,258" mask="url(#art-pass-reveal)"/>
+
+      <!-- defending team: back four, then two holding midfielders -->
+      <circle class="art-def" cx="64" cy="352" r="8.5"/>
+      <circle class="art-def art-cb live" cx="150" cy="420" r="8.5"/>
+      <circle class="art-def" cx="330" cy="338" r="8.5"/>
+      <circle class="art-def" cx="425" cy="350" r="8.5"/>
+      <circle class="art-def" cx="200" cy="470" r="8.5"/>
+      <circle class="art-def" cx="350" cy="472" r="8.5"/>
+
+      <!-- attacking team: two wide players kept quiet, the passer, the
+           decoy runner and the late runner -->
+      <circle class="art-att quiet" cx="34" cy="300" r="7.5"/>
+      <circle class="art-att quiet" cx="402" cy="424" r="7.5"/>
+      <circle class="art-att" cx="292" cy="550" r="8.5"/>
+      <circle class="art-att art-decoy-runner live" cx="118" cy="468" r="8.5"/>
+      <circle class="art-att art-receiver live" cx="232" cy="266" r="8.5"/>
+
+      <g class="art-ball live" transform="translate(240,258)"><circle r="5.5"/></g>
+      <circle class="art-pulse live" cx="240" cy="258" r="17"/>
+
+      <g aria-hidden="true">
+        <text class="art-label art-label-decoy live" x="40" y="506">decoy run</text>
+        <text class="art-label art-label-space live" x="164" y="240">space</text>
+      </g>
+    </svg>
+  </div>
 </footer>
+
 </body>
 </html>
